@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }) => {
           headers: {
             "Content-Type": "application/json",
           },
+          timeout: 5000,
         },
       );
     
@@ -56,6 +57,7 @@ export const AuthProvider = ({ children }) => {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
+        timeout: 5000,
       });
       setUser(response.data.user);
     } catch (error) {
@@ -93,6 +95,7 @@ export const useAuth = () => {
   }
   return context;
 };
+
 
 
 
