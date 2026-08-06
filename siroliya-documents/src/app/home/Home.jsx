@@ -9,7 +9,9 @@ const Home = () => {
   const signOut = () => {
     logOut();
     router.replace("/auth/Login");
-  };
+    
+};
+
 
   return (
     <View style={styles.container}>

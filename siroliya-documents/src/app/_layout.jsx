@@ -15,16 +15,19 @@ function NavigationProvider() {
   useEffect(() => {
     if (loading) return;
 
-    const inAuthGroup = segments[0] === "auth";
-
-    if (!user && !inAuthGroup) {
-      // Redirect to the sign-in page if not logged in and not in the auth group
-      router.replace("/auth/Login");
-    } else if (user && inAuthGroup) {
-      // Redirect to the home page if logged in and trying to access the login page
-      router.replace("/home/Home");
+    if (!user) {
+      // If not logged in, ensure user is in the auth group
+      if (segments[0] !== "auth") {
+        router.replace("/auth/Login");
+      }
+    } else {
+      // If logged in, ensure user is in the home group
+      if (segments[0] !== "home") {
+        router.replace("/home/Home");
+      }
     }
   }, [user, loading, segments]);
+
 
   if (loading) {
     return (
