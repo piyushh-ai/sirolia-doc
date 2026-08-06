@@ -5,17 +5,24 @@ import {
   GoogleSigninButton,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
+import { useAuth } from "../../hooks/useAuth";
+import { router } from "expo-router";
 
 const Login = () => {
+  const { user, loading, error, signUp } = useAuth();
+
   const signIn = async () => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      console.log("User Info:", userInfo);
+      await signUp(userInfo.data.idToken);
+      router.replace("/home/Home");
     } catch (error) {
       console.error(error);
     }
   };
+
+
 
   useEffect(() => {
     GoogleSignin.configure({
