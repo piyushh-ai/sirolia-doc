@@ -1,6 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import authRoutes from "./routes/authRoutes.js";
+import documentRoutes from "./routes/document.route.js";
 
 const app = express();
 app.use(express.json());
@@ -9,6 +10,7 @@ app.use(morgan("dev"));
 
 // routes
 app.use("/api/auth", authRoutes);
+app.use("/api/document", documentRoutes);
 
 // health check
 app.get("/health", (req, res) => {

@@ -6,6 +6,9 @@ import { router } from "expo-router";
 const Home = () => {
   const { user, logOut } = useAuth();
 
+
+  
+
   const signOut = () => {
     logOut();
     router.replace("/auth/Login");

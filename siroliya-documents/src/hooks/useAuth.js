@@ -49,6 +49,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         return;
       }
+      
 
       const url = `${process.env.EXPO_PUBLIC_API_URL}/auth/get-me`;
       console.log("Hitting API URL:", url);

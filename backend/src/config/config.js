@@ -13,4 +13,7 @@ export const config = {
   mongoUri: process.env.MONGO_URI,
   googleClientId: process.env.WEB_CLIENT_ID,
   jwtSecret: process.env.JWT_SECRET,
+  cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  apiKey: process.env.CLOUDINARY_API_KEY,
+  apiSecret: process.env.CLOUDINARY_API_SECRET,
 };
