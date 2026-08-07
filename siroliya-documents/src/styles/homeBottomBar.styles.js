@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { Typography } from "../constants/fonts";
 
 /**
  * homeBottomBar.styles.js
@@ -80,8 +81,8 @@ export const makeStyles = (colors) =>
       lineHeight: 30,
     },
     tabLabel: {
+      ...Typography.button,
       fontSize: 11,
-      fontWeight: "600",
       letterSpacing: 0.2,
     },
     tabLabelActive: {

@@ -12,6 +12,7 @@ import {
 import { router } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
 import { useDocument } from "../../hooks/useDocuments";
+import { Typography } from "../../constants/fonts";
 
 const MEMBERS = ["Piyush", "Dishant", "Sapna", "Santosh"];
 
@@ -211,14 +212,13 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
+    ...Typography.h2,
     color: "#0f172a",
     textAlign: "center",
     marginBottom: 6,
   },
   subtitle: {
-    fontSize: 14,
+    ...Typography.body,
     color: "#64748b",
     textAlign: "center",
     marginBottom: 24,
@@ -228,8 +228,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 14,
-    fontWeight: "600",
+    ...Typography.label,
     color: "#334155",
     marginBottom: 8,
   },
@@ -238,7 +237,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    fontSize: 15,
+    ...Typography.input,
     color: "#0f172a",
     borderWidth: 1,
     borderColor: "#e2e8f0",
@@ -266,7 +265,7 @@ const styles = StyleSheet.create({
     borderColor: "#4f46e5",
   },
   memberChipText: {
-    fontSize: 14,
+    ...Typography.body,
     fontWeight: "600",
     color: "#475569",
   },
@@ -287,13 +286,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   uploadAreaText: {
-    fontSize: 15,
-    fontWeight: "600",
+    ...Typography.button,
     color: "#475569",
     marginBottom: 4,
   },
   uploadSubtext: {
-    fontSize: 12,
+    ...Typography.caption,
     color: "#94a3b8",
   },
   selectedFileContainer: {
@@ -319,12 +317,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   fileName: {
-    fontSize: 14,
+    ...Typography.body,
     fontWeight: "600",
     color: "#166534",
   },
   fileSize: {
-    fontSize: 12,
+    ...Typography.caption,
     color: "#15803d",
     marginTop: 2,
   },
@@ -335,7 +333,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   removeBtnText: {
-    fontSize: 12,
+    ...Typography.caption,
     fontWeight: "600",
     color: "#991b1b",
   },
@@ -356,8 +354,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#a5b4fc",
   },
   submitBtnText: {
-    fontSize: 16,
-    fontWeight: "700",
+    ...Typography.button,
     color: "#ffffff",
   },
   cancelBtn: {
@@ -367,8 +364,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   cancelBtnText: {
-    fontSize: 14,
-    fontWeight: "600",
+    ...Typography.button,
     color: "#64748b",
   },
 });

@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { Typography } from "../constants/fonts";
 
 /**
  * homePage.styles.js
@@ -29,14 +30,12 @@ export const makeHomeStyles = (colors) =>
       flex: 1,
     },
     headerGreeting: {
-      fontSize: 13,
+      ...Typography.label,
       color: colors.textMuted,
-      fontWeight: "500",
       marginBottom: 2,
     },
     headerName: {
-      fontSize: 20,
-      fontWeight: "700",
+      ...Typography.h2,
       color: colors.textPrimary,
     },
     themeBtn: {
@@ -71,9 +70,8 @@ export const makeHomeStyles = (colors) =>
       fontSize: 16,
     },
     searchInput: {
+      ...Typography.input,
       flex: 1,
-      fontSize: 14,
-      fontWeight: "500",
       paddingVertical: 0,
     },
     searchCloseBtn: {
@@ -94,14 +92,12 @@ export const makeHomeStyles = (colors) =>
       paddingBottom: 10,
     },
     sectionTitle: {
-      fontSize: 16,
-      fontWeight: "700",
+      ...Typography.h3,
       color: colors.textPrimary,
     },
     sectionCount: {
-      fontSize: 13,
+      ...Typography.label,
       color: colors.textMuted,
-      fontWeight: "500",
     },
 
     // ── List ─────────────────────────────────────────────────────
@@ -153,8 +149,7 @@ export const makeHomeStyles = (colors) =>
       flex: 1,
     },
     cardDocName: {
-      fontSize: 15,
-      fontWeight: "700",
+      ...Typography.cardTitle,
       color: colors.textPrimary,
       marginBottom: 4,
     },
@@ -171,12 +166,12 @@ export const makeHomeStyles = (colors) =>
       alignSelf: "flex-start",
     },
     memberBadgeText: {
-      fontSize: 11,
-      fontWeight: "700",
+      ...Typography.caption,
+      fontWeight: "700", // override caption regular weight
       color: "#ffffff",
     },
     cardMeta: {
-      fontSize: 11,
+      ...Typography.caption,
       color: colors.textMuted,
     },
     cardMetaRow: {
@@ -185,7 +180,7 @@ export const makeHomeStyles = (colors) =>
       marginTop: 2,
     },
     cardMetaDot: {
-      fontSize: 11,
+      ...Typography.caption,
       color: colors.textMuted,
     },
 
@@ -208,17 +203,15 @@ export const makeHomeStyles = (colors) =>
       marginBottom: 16,
     },
     emptyTitle: {
-      fontSize: 18,
-      fontWeight: "700",
+      ...Typography.h3,
       color: colors.textPrimary,
       marginBottom: 6,
     },
     emptySubtitle: {
-      fontSize: 14,
+      ...Typography.body,
       color: colors.textMuted,
       textAlign: "center",
       paddingHorizontal: 40,
-      lineHeight: 20,
     },
 
     // ── Loading ───────────────────────────────────────────────────

@@ -6,10 +6,14 @@ import { Text } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { DocumentProvider } from "@/hooks/useDocuments";
 import { ThemeProvider, useTheme } from "@/hooks/useTheme";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
+import { FontFamily } from "@/constants/fonts";
 
-// Reads current theme mode and sets StatusBar style accordingly
-// dark mode  → style="light" (white icons on dark background)
-// light mode → style="dark"  (dark icons on light background)
+// Keep the splash screen visible until fonts are loaded
+SplashScreen.preventAutoHideAsync();
+
+// StatusBar synced to current theme
 function ThemedStatusBar() {
   const { mode, colors } = useTheme();
   return (
@@ -32,12 +36,10 @@ function NavigationProvider() {
     if (loading) return;
 
     if (!user) {
-      // If not logged in, ensure user is in the auth group
       if (segments[0] !== "auth") {
         router.replace("/auth/Login");
       }
     } else {
-      // If logged in, ensure user is in the home group
       if (segments[0] !== "home") {
         router.replace("/home/Home");
       }
@@ -56,6 +58,23 @@ function NavigationProvider() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    [FontFamily.regular]: require("../../assets/fonts/CabinetGrotesk-Regular.otf"),
+    [FontFamily.medium]: require("../../assets/fonts/CabinetGrotesk-Medium.otf"),
+    [FontFamily.bold]: require("../../assets/fonts/CabinetGrotesk-Bold.otf"),
+    [FontFamily.extrabold]: require("../../assets/fonts/CabinetGrotesk-Extrabold.otf"),
+  });
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      // Hide splash once fonts are loaded (or failed gracefully)
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  // Don't render anything until fonts are ready
+  if (!fontsLoaded && !fontError) return null;
+
   return (
     <ThemeProvider>
       <AuthProvider>
