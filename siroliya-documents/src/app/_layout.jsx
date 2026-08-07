@@ -3,6 +3,22 @@ import SafeScreen from "@/components/SafeScreen";
 import { useEffect } from "react";
 import { useAuth, AuthProvider } from "@/hooks/useAuth";
 import { Text } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { DocumentProvider } from "@/hooks/useDocuments";
+import { ThemeProvider, useTheme } from "@/hooks/useTheme";
+
+// Reads current theme mode and sets StatusBar style accordingly
+// dark mode  → style="light" (white icons on dark background)
+// light mode → style="dark"  (dark icons on light background)
+function ThemedStatusBar() {
+  const { mode, colors } = useTheme();
+  return (
+    <StatusBar
+      style={mode === "dark" ? "light" : "dark"}
+      backgroundColor={colors.background}
+    />
+  );
+}
 
 function NavigationProvider() {
   const { getMe, user, loading } = useAuth();
@@ -28,7 +44,6 @@ function NavigationProvider() {
     }
   }, [user, loading, segments]);
 
-
   if (loading) {
     return (
       <SafeScreen>
@@ -42,12 +57,15 @@ function NavigationProvider() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <SafeScreen>
-        <NavigationProvider />
-      </SafeScreen>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <DocumentProvider>
+          <SafeScreen>
+            <NavigationProvider />
+          </SafeScreen>
+          <ThemedStatusBar />
+        </DocumentProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
-
-

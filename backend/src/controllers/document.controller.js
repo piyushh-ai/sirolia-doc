@@ -75,7 +75,9 @@ export const createDocument = async (req, res) => {
 
 export const getAllDocuments = async (req, res) => {
   try {
-    const documents = await Document.find();
+    const documents = await Document.find()
+      .populate("uploadedBy", "name email")
+      .sort({ createdAt: -1 });
     if (documents.length === 0) {
       return res.status(404).json({ message: "No documents found" });
     }
