@@ -15,6 +15,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { makeHomeStyles } from "../../styles/homePage.styles";
 import DocumentCard from "../../components/DocumentCard";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 const Home = () => {
   const { user } = useAuth();
@@ -135,7 +136,12 @@ const Home = () => {
             <DocumentCard
               document={item}
               onPress={() => {
-                // Navigate to document detail — to be implemented
+                router.push({
+                  pathname: "/document/Document-Detail",
+                  params: {
+                    documentId: item._id,
+                  },
+                });
               }}
             />
           )}

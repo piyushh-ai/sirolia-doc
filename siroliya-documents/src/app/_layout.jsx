@@ -40,7 +40,8 @@ function NavigationProvider() {
         router.replace("/auth/Login");
       }
     } else {
-      if (segments[0] !== "home") {
+      const allowedSegments = ["home", "document"];
+      if (!allowedSegments.includes(segments[0])) {
         router.replace("/home/Home");
       }
     }

@@ -8,6 +8,7 @@ export const DocumentProvider = ({ children }) => {
   const [allDocument, setAllDocument] = useState(null);
   const [loading, setLoading] = useState(true); // Start as true to check local session on mount
   const [error, setError] = useState(null);
+  const [documentDetail, setDocumentDetail] = useState(null)
 
   const getAllDocument = async () => {
     setLoading(true);
@@ -86,9 +87,109 @@ export const DocumentProvider = ({ children }) => {
     }
   };
 
+  const getDocumentDetail = async (documentId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        console.log("No token found in AsyncStorage");
+        return;
+      }
+
+      const url = `${process.env.EXPO_PUBLIC_API_URL}/document/${documentId}`;
+      console.log("Hitting API URL:", url);
+      const response = await axios.get(url, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 5000,
+      });
+
+      setDocumentDetail(response.data);
+    } catch (error) {
+      console.error(
+        "API Error Response:",
+        error?.response?.data || error.message || error,
+      );
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteDocument = async (documentId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) return;
+
+      const url = `${process.env.EXPO_PUBLIC_API_URL}/document/delete/${documentId}`;
+      console.log("Hitting API URL:", url);
+      const response = await axios.delete(url, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 5000,
+      });
+      return response;
+    } catch (error) {
+      console.error(
+        "API Error Response:",
+        error?.response?.data || error.message || error,
+      );
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const editDocument = async (documentId, { documentName, memberName, file }) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) return;
+
+      const url = `${process.env.EXPO_PUBLIC_API_URL}/document/edit/${documentId}`;
+      console.log("Hitting API URL:", url);
+
+      const formData = new FormData();
+      if (documentName) formData.append("documentName", documentName);
+      if (memberName) formData.append("memberName", memberName);
+      if (file) {
+        formData.append("file", {
+          uri: file.uri,
+          name: file.name || "document",
+          type: file.mimeType || "application/octet-stream",
+        });
+      }
+
+      const response = await axios.put(url, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 15000,
+      });
+      return response;
+    } catch (error) {
+      console.error(
+        "API Error Response:",
+        error?.response?.data || error.message || error,
+      );
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <DocumentContext.Provider
-      value={{ allDocument, loading, error, getAllDocument, createDocument }}
+      value={{ allDocument, loading, error, getAllDocument, createDocument, documentDetail, getDocumentDetail, deleteDocument, editDocument }}
     >
       {children}
     </DocumentContext.Provider>

@@ -221,3 +221,17 @@ export const editDocument = async (req, res) => {
     res.status(500).json({ message: "Failed to update document", error: error.message });
   }
 };
+
+export const getDocumentDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const document = await Document.findById(id).populate("uploadedBy", "name email");
+    if (!document) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+    res.status(200).json({ document });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch document", error: error.message });
+  }
+}

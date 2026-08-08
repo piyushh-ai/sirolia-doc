@@ -1,27 +1,112 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
   Alert,
   ScrollView,
+  SafeAreaView,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { router } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
+import { Ionicons } from "@expo/vector-icons";
 import { useDocument } from "../../hooks/useDocuments";
-import { Typography } from "../../constants/fonts";
+import { useTheme } from "../../hooks/useTheme";
+import { createStyles } from "../../styles/createDocument.styles";
 
-const MEMBERS = ["Piyush", "Dishant", "Sapna", "Santosh"];
+// ─── Member config ────────────────────────────────────────────────────────────
+const MEMBERS = [
+  { name: "Piyush", initial: "PI", colorKey: "memberPiyush" },
+  { name: "Dishant", initial: "DI", colorKey: "memberDishant" },
+  { name: "Sapna", initial: "SA", colorKey: "memberSapna" },
+  { name: "Santosh", initial: "SS", colorKey: "memberSantosh" },
+];
 
+// ─── Progress Step Indicator ──────────────────────────────────────────────────
+const ProgressSteps = ({ step, colors, styles }) => {
+  const steps = ["Name", "Member", "File"];
+  return (
+    <View style={styles.progressContainer}>
+      {steps.map((label, idx) => {
+        const done = idx < step;
+        const active = idx === step;
+        return (
+          <React.Fragment key={label}>
+            {idx > 0 && (
+              <View
+                style={[
+                  styles.progressLine,
+                  (done || active) && styles.progressLineFilled,
+                ]}
+              />
+            )}
+            <View style={styles.progressStep}>
+              <View
+                style={[
+                  styles.progressDot,
+                  active && styles.progressDotActive,
+                  done && styles.progressDotDone,
+                ]}
+              >
+                {done ? (
+                  <Ionicons name="checkmark" size={14} color="#fff" />
+                ) : (
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: "800",
+                      color: active ? "#fff" : colors.textMuted,
+                    }}
+                  >
+                    {idx + 1}
+                  </Text>
+                )}
+              </View>
+              <Text
+                style={[
+                  styles.progressLabel,
+                  active && styles.progressLabelActive,
+                ]}
+              >
+                {label}
+              </Text>
+            </View>
+          </React.Fragment>
+        );
+      })}
+    </View>
+  );
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 const CreateDocument = () => {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const { createDocument, getAllDocument, loading } = useDocument();
-  
+
   const [documentName, setDocumentName] = useState("");
-  const [memberName, setMemberName] = useState("");
-  const [file, setFile] = useState(null);
+  const [memberName,   setMemberName]   = useState("");
+  const [file,         setFile]         = useState(null);
+
+  // Animated scale for upload zone press
+  const uploadScale = useRef(new Animated.Value(1)).current;
+
+  // Compute progress step (0 = Name, 1 = Member, 2 = File)
+  const progressStep = file ? 2 : memberName ? 1 : documentName.trim() ? 1 : 0;
+
+  const pressIn = () =>
+    Animated.spring(uploadScale, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
+  const pressOut = () =>
+    Animated.spring(uploadScale, { toValue: 1, useNativeDriver: true }).start();
 
   const handlePickDocument = async () => {
     try {
@@ -29,27 +114,25 @@ const CreateDocument = () => {
         type: ["image/*", "application/pdf"],
         copyToCacheDirectory: true,
       });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
+      if (!result.canceled && result.assets?.length > 0) {
         setFile(result.assets[0]);
       }
     } catch (err) {
-      console.error("Error picking document:", err);
       Alert.alert("Error", "Failed to select document. Please try again.");
     }
   };
 
   const handleUpload = async () => {
     if (!documentName.trim()) {
-      Alert.alert("Validation Error", "Please enter a document name.");
+      Alert.alert("Missing Field", "Please enter a document name.");
       return;
     }
     if (!memberName) {
-      Alert.alert("Validation Error", "Please select a family member.");
+      Alert.alert("Missing Field", "Please select a family member.");
       return;
     }
     if (!file) {
-      Alert.alert("Validation Error", "Please select an image or PDF file to upload.");
+      Alert.alert("Missing Field", "Please select an image or PDF file.");
       return;
     }
 
@@ -59,314 +142,294 @@ const CreateDocument = () => {
       file,
     });
 
-    if (response && response.status === 201) {
-      Alert.alert("Success", "Document uploaded successfully!");
-      getAllDocument(); // Refresh document list
+    if (response?.status === 201) {
+      Alert.alert("✅ Success", "Document uploaded successfully!");
+      getAllDocument();
       router.back();
     } else {
       Alert.alert(
         "Upload Failed",
-        "Failed to upload document. The document might already exist or the file size is too large."
+        "The document might already exist or the file is too large.",
       );
     }
   };
 
   const formatFileSize = (bytes) => {
-    if (!bytes) return "0 Bytes";
+    if (!bytes) return "0 B";
     const k = 1024;
-    const dm = 2;
-    const sizes = ["Bytes", "KB", "MB"];
+    const sizes = ["B", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
   };
 
-  return (
-    <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-      <View style={styles.card}>
-        <Text style={styles.title}>Upload New Document</Text>
-        <Text style={styles.subtitle}>Upload your family documents securely to the cloud.</Text>
+  const getFileExtension = (name) =>
+    name?.split(".").pop()?.toUpperCase() ?? "";
 
-        {/* Document Name Input */}
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Document Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g., Aadhar Card, Marksheet"
-            placeholderTextColor="#94a3b8"
-            value={documentName}
-            onChangeText={setDocumentName}
-            maxLength={50}
-          />
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+      {/* ── Header ── */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
+        </TouchableOpacity>
+
+        <View style={styles.headerTitleBlock}>
+          <Text style={styles.headerTitle}>New Document</Text>
+          <Text style={styles.headerSubtitle}>Upload family document</Text>
         </View>
 
-        {/* Member Selector Grid */}
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Select Family Member</Text>
+        <View style={styles.headerRight} />
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="always"
+        showsVerticalScrollIndicator={false}
+        keyboardDismissMode="none"
+      >
+        {/* ── Progress ── */}
+        <ProgressSteps step={progressStep} colors={colors} styles={styles} />
+
+        {/* ── Tips Card ── */}
+        <View style={styles.tipsCard}>
+          <Ionicons
+            name="information-circle"
+            size={20}
+            color={colors.secondary}
+          />
+          <Text style={styles.tipsText}>
+            Supported formats:{" "}
+            <Text style={{ fontWeight: "700" }}>PDF, JPEG, PNG</Text>. Max size{" "}
+            <Text style={{ fontWeight: "700" }}>10 MB</Text>. Documents are
+            stored securely.
+          </Text>
+        </View>
+
+        {/* ── Card 1: Document Name ── */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderIcon}>
+              <Ionicons name="document-text" size={20} color={colors.primary} />
+            </View>
+            <View style={styles.cardHeaderTitleBlock}>
+              <Text style={styles.cardHeaderTitle}>Document Name</Text>
+              <Text style={styles.cardHeaderSubtitle}>
+                Give it a recognisable name
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Name</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons
+                name="create-outline"
+                size={18}
+                color={colors.textMuted}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. Aadhar Card, Marksheet…"
+                placeholderTextColor={colors.textMuted}
+                value={documentName}
+                onChangeText={setDocumentName}
+                maxLength={50}
+                autoCorrect={false}
+                autoCapitalize="words"
+                returnKeyType="done"
+                underlineColorAndroid="transparent"
+              />
+              <Text style={styles.charCount}>{documentName.length}/50</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ── Card 2: Family Member ── */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderIcon}>
+              <Ionicons name="people" size={20} color={colors.primary} />
+            </View>
+            <View style={styles.cardHeaderTitleBlock}>
+              <Text style={styles.cardHeaderTitle}>Family Member</Text>
+              <Text style={styles.cardHeaderSubtitle}>
+                Who does this belong to?
+              </Text>
+            </View>
+          </View>
+
           <View style={styles.memberGrid}>
-            {MEMBERS.map((member) => {
-              const isSelected = memberName === member;
+            {MEMBERS.map((m) => {
+              const isSelected = memberName === m.name;
+              const avatarColor = colors[m.colorKey] ?? colors.primary;
               return (
                 <TouchableOpacity
-                  key={member}
+                  key={m.name}
                   style={[
                     styles.memberChip,
                     isSelected && styles.memberChipSelected,
                   ]}
-                  onPress={() => setMemberName(member)}
-                  activeOpacity={0.8}
+                  onPress={() => setMemberName(m.name)}
+                  activeOpacity={0.75}
                 >
+                  <View
+                    style={[
+                      styles.memberAvatarCircle,
+                      {
+                        backgroundColor: isSelected
+                          ? avatarColor
+                          : `${avatarColor}40`,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.memberAvatarText}>{m.initial}</Text>
+                  </View>
                   <Text
                     style={[
                       styles.memberChipText,
                       isSelected && styles.memberChipTextSelected,
                     ]}
                   >
-                    {member}
+                    {m.name}
                   </Text>
+                  {isSelected && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={colors.primary}
+                      style={{ marginLeft: "auto" }}
+                    />
+                  )}
                 </TouchableOpacity>
               );
             })}
           </View>
         </View>
 
-        {/* File Picker */}
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>File Attachment (PDF or Image)</Text>
+        {/* ── Card 3: File Attachment ── */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderIcon}>
+              <Ionicons name="attach" size={20} color={colors.primary} />
+            </View>
+            <View style={styles.cardHeaderTitleBlock}>
+              <Text style={styles.cardHeaderTitle}>File Attachment</Text>
+              <Text style={styles.cardHeaderSubtitle}>PDF or image file</Text>
+            </View>
+          </View>
+
           {!file ? (
-            <TouchableOpacity
-              style={styles.uploadArea}
-              onPress={handlePickDocument}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.uploadIcon}>📁</Text>
-              <Text style={styles.uploadAreaText}>Click to select PDF or Image</Text>
-              <Text style={styles.uploadSubtext}>Supports PDF, JPEG, PNG</Text>
-            </TouchableOpacity>
+            <Animated.View style={{ transform: [{ scale: uploadScale }] }}>
+              <TouchableOpacity
+                style={styles.uploadArea}
+                onPress={handlePickDocument}
+                onPressIn={pressIn}
+                onPressOut={pressOut}
+                activeOpacity={1}
+              >
+                <View style={styles.uploadIconCircle}>
+                  <Ionicons
+                    name="cloud-upload-outline"
+                    size={30}
+                    color={colors.primary}
+                  />
+                </View>
+                <Text style={styles.uploadAreaText}>Tap to Browse Files</Text>
+                <Text style={styles.uploadSubtext}>
+                  Select a PDF or image from your device
+                </Text>
+                <View style={styles.uploadBadgesRow}>
+                  {["PDF", "JPEG", "PNG"].map((ext) => (
+                    <View key={ext} style={styles.uploadBadge}>
+                      <Text style={styles.uploadBadgeText}>{ext}</Text>
+                    </View>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
           ) : (
             <View style={styles.selectedFileContainer}>
-              <View style={styles.fileDetails}>
-                <Text style={styles.fileIcon}>
-                  {file.mimeType && file.mimeType.includes("pdf") ? "📄" : "🖼️"}
+              <View style={styles.fileIconCircle}>
+                <Ionicons
+                  name={
+                    file.mimeType?.includes("pdf") ? "document-text" : "image"
+                  }
+                  size={24}
+                  color={colors.success}
+                />
+              </View>
+
+              <View style={styles.fileMetadata}>
+                <Text style={styles.fileName} numberOfLines={1}>
+                  {file.name}
                 </Text>
-                <View style={styles.fileMetadata}>
-                  <Text style={styles.fileName} numberOfLines={1}>
-                    {file.name}
+                <View style={styles.fileSubRow}>
+                  <Text style={styles.fileSize}>
+                    {formatFileSize(file.size)}
                   </Text>
-                  <Text style={styles.fileSize}>{formatFileSize(file.size)}</Text>
+                  <View style={styles.fileDot} />
+                  <Text style={styles.fileType}>
+                    {getFileExtension(file.name)}
+                  </Text>
                 </View>
               </View>
+
               <TouchableOpacity
                 style={styles.removeBtn}
                 onPress={() => setFile(null)}
-                activeOpacity={0.6}
+                activeOpacity={0.7}
               >
-                <Text style={styles.removeBtnText}>Remove</Text>
+                <Ionicons name="close" size={16} color={colors.danger} />
               </TouchableOpacity>
             </View>
           )}
         </View>
 
-        {/* Submit Button */}
+        {/* ── Submit ── */}
         <TouchableOpacity
           style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
           onPress={handleUpload}
           disabled={loading}
-          activeOpacity={0.8}
+          activeOpacity={0.85}
         >
           {loading ? (
             <ActivityIndicator color="#ffffff" size="small" />
           ) : (
-            <Text style={styles.submitBtnText}>Upload Document</Text>
+            <>
+              <Ionicons name="cloud-upload" size={20} color="#fff" />
+              <Text style={styles.submitBtnText}>Upload Document</Text>
+            </>
           )}
         </TouchableOpacity>
 
-        {/* Cancel Button */}
+        {/* ── Cancel ── */}
         <TouchableOpacity
           style={styles.cancelBtn}
           onPress={() => router.back()}
           disabled={loading}
           activeOpacity={0.7}
         >
+          <Ionicons
+            name="arrow-back-outline"
+            size={16}
+            color={colors.textSecondary}
+          />
           <Text style={styles.cancelBtnText}>Go Back</Text>
         </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    backgroundColor: "#f8fafc",
-    padding: 20,
-    justifyContent: "center",
-  },
-  card: {
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: "#0f172a",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  title: {
-    ...Typography.h2,
-    color: "#0f172a",
-    textAlign: "center",
-    marginBottom: 6,
-  },
-  subtitle: {
-    ...Typography.body,
-    color: "#64748b",
-    textAlign: "center",
-    marginBottom: 24,
-    lineHeight: 20,
-  },
-  formGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    ...Typography.label,
-    color: "#334155",
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: "#f1f5f9",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    ...Typography.input,
-    color: "#0f172a",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  memberGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginTop: 4,
-  },
-  memberChip: {
-    backgroundColor: "#f1f5f9",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    flex: 1,
-    minWidth: "40%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  memberChipSelected: {
-    backgroundColor: "#4f46e5",
-    borderColor: "#4f46e5",
-  },
-  memberChipText: {
-    ...Typography.body,
-    fontWeight: "600",
-    color: "#475569",
-  },
-  memberChipTextSelected: {
-    color: "#ffffff",
-  },
-  uploadArea: {
-    borderWidth: 2,
-    borderStyle: "dashed",
-    borderColor: "#cbd5e1",
-    borderRadius: 16,
-    padding: 24,
-    alignItems: "center",
-    backgroundColor: "#f8fafc",
-  },
-  uploadIcon: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  uploadAreaText: {
-    ...Typography.button,
-    color: "#475569",
-    marginBottom: 4,
-  },
-  uploadSubtext: {
-    ...Typography.caption,
-    color: "#94a3b8",
-  },
-  selectedFileContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#f0fdf4",
-    borderWidth: 1,
-    borderColor: "#bbf7d0",
-    borderRadius: 16,
-    padding: 16,
-  },
-  fileDetails: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  fileIcon: {
-    fontSize: 28,
-    marginRight: 12,
-  },
-  fileMetadata: {
-    flex: 1,
-  },
-  fileName: {
-    ...Typography.body,
-    fontWeight: "600",
-    color: "#166534",
-  },
-  fileSize: {
-    ...Typography.caption,
-    color: "#15803d",
-    marginTop: 2,
-  },
-  removeBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: "#fee2e2",
-    borderRadius: 8,
-  },
-  removeBtnText: {
-    ...Typography.caption,
-    fontWeight: "600",
-    color: "#991b1b",
-  },
-  submitBtn: {
-    backgroundColor: "#4f46e5",
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 10,
-    shadowColor: "#4f46e5",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  submitBtnDisabled: {
-    backgroundColor: "#a5b4fc",
-  },
-  submitBtnText: {
-    ...Typography.button,
-    color: "#ffffff",
-  },
-  cancelBtn: {
-    paddingVertical: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 12,
-  },
-  cancelBtnText: {
-    ...Typography.button,
-    color: "#64748b",
-  },
-});
 
 export default CreateDocument;
