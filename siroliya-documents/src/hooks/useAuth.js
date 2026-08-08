@@ -25,16 +25,18 @@ export const AuthProvider = ({ children }) => {
           timeout: 5000,
         },
       );
-    
+
       const { token, user: userData } = response.data;
       if (token) {
         await AsyncStorage.setItem("userToken", token);
       }
 
       setUser(userData);
+      return userData; // Return user so caller can verify success
     } catch (error) {
       console.error("API Error Response:", error?.response?.data || error.message || error);
       setError(error);
+      throw error; // Re-throw so Login.jsx can catch and show error message
     } finally {
       setLoading(false);
     }

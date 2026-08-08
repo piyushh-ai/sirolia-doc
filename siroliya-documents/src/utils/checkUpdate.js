@@ -38,7 +38,7 @@ export const checkForUpdate = async () => {
     if (isNewerVersion(latestVersion, currentVersion)) {
       Alert.alert(
         'Update Available',
-        releaseNotes || `Naya version (${latestVersion}) available hai.`,
+        releaseNotes || `A new version (${latestVersion}) is available.`,
         [
           ...(forceUpdate ? [] : [{ text: 'Later', style: 'cancel' }]),
           {
@@ -51,6 +51,6 @@ export const checkForUpdate = async () => {
     }
   } catch (error) {
     console.error('Update check failed:', error);
-    // Silently fail — update check na hone se app block nahi hona chahiye
+    // Silently fail — update check failure should not block the app
   }
 };

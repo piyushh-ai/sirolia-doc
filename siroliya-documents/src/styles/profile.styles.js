@@ -18,6 +18,7 @@ export const makeProfileStyles = (colors) =>
     // ─── Header ──────────────────────────────────────────────────────────────
     header: {
       paddingHorizontal: 20,
+      paddingTop: 16,
       paddingBottom: 14,
       backgroundColor: colors.surface,
       borderBottomWidth: 1,

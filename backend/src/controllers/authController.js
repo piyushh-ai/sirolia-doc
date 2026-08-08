@@ -21,9 +21,9 @@ export const googleLogin = async (req, res) => {
 
     // Step 2: Whitelist check
     const allowedMember = ALLOWED_MEMBERS.find((m) => m.email === email);
-    // if (!allowedMember) {
-    //   return res.status(403).json({ message: 'Access Denied - not a family member' });
-    // }
+    if (!allowedMember) {
+      return res.status(403).json({ message: 'Access Denied - not a family member' });
+    }
 
     // Step 3: Find or create user in MongoDB
     let user = await userModel.findOne({ googleId });
