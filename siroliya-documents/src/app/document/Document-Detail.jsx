@@ -10,7 +10,6 @@ import {
   TextInput,
   Alert,
   Linking,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
@@ -49,8 +48,13 @@ const formatDate = (iso) => {
 
 const DocumentDetail = () => {
   const { documentId } = useLocalSearchParams();
-  const { documentDetail, getDocumentDetail, loading, deleteDocument, editDocument } =
-    useDocument();
+  const {
+    documentDetail,
+    getDocumentDetail,
+    loading,
+    deleteDocument,
+    editDocument,
+  } = useDocument();
   const { user } = useAuth();
   const { colors, mode } = useTheme();
 
@@ -91,10 +95,22 @@ const DocumentDetail = () => {
   const fileTypeMeta = useCallback(() => {
     const ft = (doc?.fileType ?? "").toLowerCase();
     if (ft === "image")
-      return { bg: `${colors.primary}18`, text: colors.primary, icon: "image-outline" };
+      return {
+        bg: `${colors.primary}18`,
+        text: colors.primary,
+        icon: "image-outline",
+      };
     if (ft === "pdf")
-      return { bg: `${colors.danger}15`, text: colors.danger, icon: "document-text-outline" };
-    return { bg: `${colors.textMuted}15`, text: colors.textMuted, icon: "document-outline" };
+      return {
+        bg: `${colors.danger}15`,
+        text: colors.danger,
+        icon: "document-text-outline",
+      };
+    return {
+      bg: `${colors.textMuted}15`,
+      text: colors.textMuted,
+      icon: "document-outline",
+    };
   }, [doc, colors]);
 
   // ── Delete handler ──
@@ -112,7 +128,7 @@ const DocumentDetail = () => {
             if (res) router.back();
           },
         },
-      ]
+      ],
     );
   };
 
@@ -140,7 +156,7 @@ const DocumentDetail = () => {
   // ─── Loading state ────────────────────────────────────────────────────────
   if (loading && !doc) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <StatusBar
           barStyle={isDark ? "light-content" : "dark-content"}
           backgroundColor={colors.surface}
@@ -162,14 +178,14 @@ const DocumentDetail = () => {
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loaderText}>Loading document…</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   // ─── Error / not found state ──────────────────────────────────────────────
   if (!doc) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backBtn}
@@ -184,18 +200,26 @@ const DocumentDetail = () => {
           <View style={styles.headerRight} />
         </View>
         <View style={styles.centerBox}>
-          <Ionicons name="alert-circle-outline" size={48} color={colors.danger} />
-          <Text style={styles.errorText}>Document not found or failed to load.</Text>
+          <Ionicons
+            name="alert-circle-outline"
+            size={48}
+            color={colors.danger}
+          />
+          <Text style={styles.errorText}>
+            Document not found or failed to load.
+          </Text>
           <TouchableOpacity
             onPress={() => getDocumentDetail(documentId)}
             activeOpacity={0.75}
           >
-            <Text style={{ color: colors.primary, fontWeight: "700", marginTop: 8 }}>
+            <Text
+              style={{ color: colors.primary, fontWeight: "700", marginTop: 8 }}
+            >
               Retry
             </Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -205,7 +229,7 @@ const DocumentDetail = () => {
 
   // ─── Main render ─────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar
         barStyle={isDark ? "light-content" : "dark-content"}
         backgroundColor={colors.surface}
@@ -227,11 +251,19 @@ const DocumentDetail = () => {
           <Text style={styles.headerSubtitle}>{doc.memberName}</Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity onPress={() => shareDocument(doc, setSharing)} disabled={sharing} style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
+          <TouchableOpacity
+            onPress={() => shareDocument(doc, setSharing)}
+            disabled={sharing}
+            style={{ alignItems: "flex-end", justifyContent: "center" }}
+          >
             {sharing ? (
               <ActivityIndicator size="small" color={colors.textPrimary} />
             ) : (
-              <Ionicons name="share-social-outline" size={22} color={colors.textPrimary} />
+              <Ionicons
+                name="share-social-outline"
+                size={22}
+                color={colors.textPrimary}
+              />
             )}
           </TouchableOpacity>
         </View>
@@ -253,7 +285,11 @@ const DocumentDetail = () => {
           ) : (
             <View style={styles.pdfPreviewBox}>
               <View style={styles.pdfIconCircle}>
-                <Ionicons name="document-text" size={44} color={colors.primary} />
+                <Ionicons
+                  name="document-text"
+                  size={44}
+                  color={colors.primary}
+                />
               </View>
               <Text style={styles.pdfLabel}>PDF Document</Text>
               <TouchableOpacity
@@ -261,7 +297,11 @@ const DocumentDetail = () => {
                 onPress={() => Linking.openURL(doc.fileUrl)}
                 activeOpacity={0.75}
               >
-                <Ionicons name="open-outline" size={14} color={colors.primary} />
+                <Ionicons
+                  name="open-outline"
+                  size={14}
+                  color={colors.primary}
+                />
                 <Text style={styles.viewPdfBtnText}>Open PDF</Text>
               </TouchableOpacity>
             </View>
@@ -270,14 +310,17 @@ const DocumentDetail = () => {
 
         {/* ── Body ── */}
         <View style={styles.body}>
-
           {/* ── Title & File-type badge ── */}
           <View style={styles.titleRow}>
             <View style={styles.titleBlock}>
               <Text style={styles.documentTitle}>{doc.documentName}</Text>
-              <View style={[styles.fileTypeBadge, { backgroundColor: ftMeta.bg }]}>
+              <View
+                style={[styles.fileTypeBadge, { backgroundColor: ftMeta.bg }]}
+              >
                 <Ionicons name={ftMeta.icon} size={11} color={ftMeta.text} />
-                <Text style={[styles.fileTypeBadgeText, { color: ftMeta.text }]}>
+                <Text
+                  style={[styles.fileTypeBadgeText, { color: ftMeta.text }]}
+                >
                   {doc.fileType}
                 </Text>
               </View>
@@ -286,15 +329,21 @@ const DocumentDetail = () => {
 
           {/* ── Info Card ── */}
           <View style={styles.infoCard}>
-
             {/* Member */}
             <View style={styles.infoRow}>
-              <View style={[styles.infoIconBox, { backgroundColor: `${memberColor}18` }]}>
+              <View
+                style={[
+                  styles.infoIconBox,
+                  { backgroundColor: `${memberColor}18` },
+                ]}
+              >
                 <Ionicons name="person-outline" size={18} color={memberColor} />
               </View>
               <View style={styles.infoTextBlock}>
                 <Text style={styles.infoLabel}>Member</Text>
-                <Text style={[styles.infoValue, { color: memberColor }]}>{doc.memberName}</Text>
+                <Text style={[styles.infoValue, { color: memberColor }]}>
+                  {doc.memberName}
+                </Text>
               </View>
             </View>
 
@@ -302,12 +351,19 @@ const DocumentDetail = () => {
 
             {/* File Type */}
             <View style={styles.infoRow}>
-              <View style={[styles.infoIconBox, { backgroundColor: `${ftMeta.text}18` }]}>
+              <View
+                style={[
+                  styles.infoIconBox,
+                  { backgroundColor: `${ftMeta.text}18` },
+                ]}
+              >
                 <Ionicons name={ftMeta.icon} size={18} color={ftMeta.text} />
               </View>
               <View style={styles.infoTextBlock}>
                 <Text style={styles.infoLabel}>File Type</Text>
-                <Text style={styles.infoValue}>{(doc.fileType ?? "—").toUpperCase()}</Text>
+                <Text style={styles.infoValue}>
+                  {(doc.fileType ?? "—").toUpperCase()}
+                </Text>
               </View>
             </View>
 
@@ -315,12 +371,23 @@ const DocumentDetail = () => {
 
             {/* Uploaded At */}
             <View style={styles.infoRow}>
-              <View style={[styles.infoIconBox, { backgroundColor: `${colors.success}18` }]}>
-                <Ionicons name="calendar-outline" size={18} color={colors.success} />
+              <View
+                style={[
+                  styles.infoIconBox,
+                  { backgroundColor: `${colors.success}18` },
+                ]}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={18}
+                  color={colors.success}
+                />
               </View>
               <View style={styles.infoTextBlock}>
                 <Text style={styles.infoLabel}>Uploaded On</Text>
-                <Text style={styles.infoValue}>{formatDate(doc.createdAt)}</Text>
+                <Text style={styles.infoValue}>
+                  {formatDate(doc.createdAt)}
+                </Text>
               </View>
             </View>
 
@@ -328,12 +395,23 @@ const DocumentDetail = () => {
               <>
                 <View style={styles.divider} />
                 <View style={styles.infoRow}>
-                  <View style={[styles.infoIconBox, { backgroundColor: `${colors.warning}18` }]}>
-                    <Ionicons name="pencil-outline" size={18} color={colors.warning} />
+                  <View
+                    style={[
+                      styles.infoIconBox,
+                      { backgroundColor: `${colors.warning}18` },
+                    ]}
+                  >
+                    <Ionicons
+                      name="pencil-outline"
+                      size={18}
+                      color={colors.warning}
+                    />
                   </View>
                   <View style={styles.infoTextBlock}>
                     <Text style={styles.infoLabel}>Last Updated</Text>
-                    <Text style={styles.infoValue}>{formatDate(doc.updatedAt)}</Text>
+                    <Text style={styles.infoValue}>
+                      {formatDate(doc.updatedAt)}
+                    </Text>
                   </View>
                 </View>
               </>
@@ -346,12 +424,20 @@ const DocumentDetail = () => {
               <Text style={styles.uploaderAvatarText}>{uploaderInitial}</Text>
             </View>
             <View style={styles.uploaderTextBlock}>
-              <Text style={styles.uploaderName}>{doc.uploadedBy?.name ?? "Unknown"}</Text>
-              <Text style={styles.uploaderEmail}>{doc.uploadedBy?.email ?? ""}</Text>
+              <Text style={styles.uploaderName}>
+                {doc.uploadedBy?.name ?? "Unknown"}
+              </Text>
+              <Text style={styles.uploaderEmail}>
+                {doc.uploadedBy?.email ?? ""}
+              </Text>
             </View>
             {isOwner && (
               <View style={styles.ownerBadge}>
-                <Ionicons name="shield-checkmark" size={11} color={colors.success} />
+                <Ionicons
+                  name="shield-checkmark"
+                  size={11}
+                  color={colors.success}
+                />
                 <Text style={styles.ownerBadgeText}>You</Text>
               </View>
             )}
@@ -365,7 +451,11 @@ const DocumentDetail = () => {
                 onPress={() => setEditVisible(true)}
                 activeOpacity={0.75}
               >
-                <Ionicons name="create-outline" size={18} color={colors.primary} />
+                <Ionicons
+                  name="create-outline"
+                  size={18}
+                  color={colors.primary}
+                />
                 <Text style={styles.editBtnText}>Edit</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -373,12 +463,15 @@ const DocumentDetail = () => {
                 onPress={handleDelete}
                 activeOpacity={0.75}
               >
-                <Ionicons name="trash-outline" size={18} color={colors.danger} />
+                <Ionicons
+                  name="trash-outline"
+                  size={18}
+                  color={colors.danger}
+                />
                 <Text style={styles.deleteBtnText}>Delete</Text>
               </TouchableOpacity>
             </View>
           )}
-
         </View>
       </ScrollView>
 
@@ -456,7 +549,11 @@ const DocumentDetail = () => {
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
                   <>
-                    <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+                    <Ionicons
+                      name="checkmark-circle-outline"
+                      size={18}
+                      color="#fff"
+                    />
                     <Text style={styles.modalSaveBtnText}>Save Changes</Text>
                   </>
                 )}
@@ -474,7 +571,7 @@ const DocumentDetail = () => {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 

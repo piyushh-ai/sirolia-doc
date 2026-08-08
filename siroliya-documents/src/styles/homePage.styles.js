@@ -20,7 +20,6 @@ export const makeHomeStyles = (colors) =>
       alignItems: "center",
       justifyContent: "space-between",
       paddingHorizontal: 20,
-      paddingTop: 20,
       paddingBottom: 16,
       backgroundColor: colors.surface,
       borderBottomWidth: 1,

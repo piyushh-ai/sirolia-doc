@@ -20,7 +20,6 @@ export const detailStyles = (colors) =>
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 20,
-      paddingTop: 16,
       paddingBottom: 14,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,

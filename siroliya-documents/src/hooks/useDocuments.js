@@ -6,6 +6,7 @@ const DocumentContext = createContext(null);
 
 export const DocumentProvider = ({ children }) => {
   const [allDocument, setAllDocument] = useState(null);
+  const [myDocuments, setMyDocuments] = useState(null);
   const [loading, setLoading] = useState(true); // Start as true to check local session on mount
   const [error, setError] = useState(null);
   const [documentDetail, setDocumentDetail] = useState(null)
@@ -119,6 +120,43 @@ export const DocumentProvider = ({ children }) => {
     }
   };
 
+  const getMyDocuments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        setMyDocuments(null);
+        return;
+      }
+
+      const url = `${process.env.EXPO_PUBLIC_API_URL}/document/my-documents`;
+      console.log("Hitting API URL:", url);
+      const response = await axios.get(url, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 5000,
+      });
+
+      setMyDocuments(response.data.documents);
+    } catch (error) {
+      // 404 means no documents yet — treat as empty, not an error
+      if (error?.response?.status === 404) {
+        setMyDocuments([]);
+      } else {
+        console.error(
+          "API Error Response:",
+          error?.response?.data || error.message || error,
+        );
+        setError(error);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const deleteDocument = async (documentId) => {
     try {
       setLoading(true);
@@ -189,7 +227,7 @@ export const DocumentProvider = ({ children }) => {
 
   return (
     <DocumentContext.Provider
-      value={{ allDocument, loading, error, getAllDocument, createDocument, documentDetail, getDocumentDetail, deleteDocument, editDocument }}
+      value={{ allDocument, myDocuments, loading, error, getAllDocument, createDocument, documentDetail, getDocumentDetail, deleteDocument, editDocument, getMyDocuments }}
     >
       {children}
     </DocumentContext.Provider>
