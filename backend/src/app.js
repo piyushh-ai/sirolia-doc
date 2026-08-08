@@ -17,6 +17,18 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "success", message: "backend is running..." });
 });
 
+// ── App version / update check (public — no auth required) ───────────────────
+const APP_VERSION_INFO = {
+  latestVersion: "1.0.0",
+  apkUrl: "https://drive.google.com/uc?export=download&id=YOUR_FILE_ID",
+  forceUpdate: false,
+  releaseNotes: "Bug fixes and share feature added",
+};
+
+app.get("/api/version", (req, res) => {
+  res.status(200).json(APP_VERSION_INFO);
+});
+
 // invalid route
 app.use((req, res) => {
   res.status(404).json({ status: "error", message: "Invalid route" });

@@ -9,6 +9,7 @@ import { ThemeProvider, useTheme } from "@/hooks/useTheme";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { FontFamily } from "@/constants/fonts";
+import { checkForUpdate } from "@/utils/checkUpdate";
 
 // Keep the splash screen visible until fonts are loaded
 SplashScreen.preventAutoHideAsync();
@@ -30,6 +31,10 @@ function NavigationProvider() {
 
   useEffect(() => {
     getMe();
+  }, []);
+
+  useEffect(() => {
+    checkForUpdate();
   }, []);
 
   useEffect(() => {
