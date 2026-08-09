@@ -1,6 +1,5 @@
-import { StyleSheet, Dimensions } from "react-native";
+import { StyleSheet } from "react-native";
 
-const { width, height } = Dimensions.get("window");
 
 export const getLoginStyles = (colors) =>
   StyleSheet.create({
@@ -15,25 +14,6 @@ export const getLoginStyles = (colors) =>
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      paddingTop: 60,
-    },
-
-    // Glow ring behind illustration
-    glowRing: {
-      width: width * 0.75,
-      height: width * 0.75,
-      borderRadius: (width * 0.75) / 2,
-      backgroundColor: "rgba(46,107,255,0.08)",
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 1,
-      borderColor: "rgba(46,107,255,0.15)",
-    },
-
-    heroImage: {
-      width: width * 0.65,
-      height: width * 0.65,
-      borderRadius: 32,
     },
 
     // ── Bottom card section ────────────────────────────────────────────────────

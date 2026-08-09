@@ -73,7 +73,7 @@ export const DocumentProvider = ({ children }) => {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
-          timeout: 15000,
+          timeout: 60000, // increased timeout for large files
         },
       );
       return response;
@@ -211,7 +211,7 @@ export const DocumentProvider = ({ children }) => {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
-        timeout: 15000,
+        timeout: 60000, // increased timeout for large files
       });
       return response;
     } catch (error) {

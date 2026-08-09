@@ -142,9 +142,14 @@ const CreateDocument = () => {
     });
 
     if (response?.status === 201) {
-      Alert.alert("✅ Success", "Document uploaded successfully!");
+      // Clear form state before navigating back
+      setDocumentName("");
+      setMemberName("");
+      setFile(null);
       getAllDocument();
-      router.back();
+      Alert.alert("✅ Success", "Document uploaded successfully!", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
     } else {
       Alert.alert(
         "Upload Failed",
