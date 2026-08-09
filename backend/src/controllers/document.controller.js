@@ -39,7 +39,7 @@ export const createDocument = async (req, res) => {
         {
           folder: `family-docs/${formattedMemberName}`,
           resource_type: fileType === "pdf" ? "raw" : "image",
-          type: "authenticated", // private access, signed URL will be required
+          type: "upload", // public URL — app login already controls access
         },
         (error, result) => {
           if (error) reject(error);
@@ -122,7 +122,9 @@ export const deleteDocument = async (req, res) => {
 
     // Proceed to delete
     await Document.findByIdAndDelete(id);
-    await cloudinary.uploader.destroy(document.cloudinaryPublicId);
+    await cloudinary.uploader.destroy(document.cloudinaryPublicId, {
+      resource_type: document.fileType === "pdf" ? "raw" : "image",
+    });
 
     res
       .status(200)
@@ -188,7 +190,7 @@ export const editDocument = async (req, res) => {
           {
             folder: `family-docs/${updatedMemberName}`,
             resource_type: fileType === "pdf" ? "raw" : "image",
-            type: "authenticated",
+            type: "upload", // public URL — app login already controls access
           },
           (error, result) => {
             if (error) reject(error);
@@ -200,7 +202,9 @@ export const editDocument = async (req, res) => {
 
       // Delete old file from Cloudinary
       if (document.cloudinaryPublicId) {
-        await cloudinary.uploader.destroy(document.cloudinaryPublicId);
+        await cloudinary.uploader.destroy(document.cloudinaryPublicId, {
+          resource_type: document.fileType === "pdf" ? "raw" : "image",
+        });
       }
 
       document.fileUrl = uploadResult.secure_url;

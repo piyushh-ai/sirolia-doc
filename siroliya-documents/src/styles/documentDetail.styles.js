@@ -49,7 +49,10 @@ export const detailStyles = (colors) =>
       marginTop: 1,
     },
     headerRight: {
-      width: 40,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 12,
     },
 
     // ─── Scroll ──────────────────────────────────────────────────────

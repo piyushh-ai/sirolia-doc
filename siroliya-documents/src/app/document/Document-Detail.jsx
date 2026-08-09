@@ -11,6 +11,7 @@ import {
   Alert,
   Linking,
   StatusBar,
+  Dimensions,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,6 +21,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../hooks/useTheme";
 import { detailStyles } from "../../styles/documentDetail.styles";
 import { shareDocument } from "../../utils/shareDocument";
+import { downloadDocument } from "../../utils/downloadDocument";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -65,8 +67,13 @@ const DocumentDetail = () => {
   const [editVisible, setEditVisible] = useState(false);
   const [editName, setEditName] = useState("");
   const [editMember, setEditMember] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [sharing, setSharing] = useState(false);
+  const [saving,        setSaving]        = useState(false);
+  const [sharing,       setSharing]       = useState(false);
+  const [downloading,   setDownloading]   = useState(false);
+  const [imageFullscreen, setImageFullscreen] = useState(false);
+  // Separate loading states for fullscreen modal actions
+  const [fsSharing,     setFsSharing]     = useState(false);
+  const [fsDownloading, setFsDownloading] = useState(false);
 
   // ── Fetch on mount / id change ──
   useEffect(() => {
@@ -251,19 +258,29 @@ const DocumentDetail = () => {
           <Text style={styles.headerSubtitle}>{doc.memberName}</Text>
         </View>
         <View style={styles.headerRight}>
+          {/* Share */}
           <TouchableOpacity
             onPress={() => shareDocument(doc, setSharing)}
-            disabled={sharing}
-            style={{ alignItems: "flex-end", justifyContent: "center" }}
+            disabled={sharing || downloading}
+            style={{ alignItems: "center", justifyContent: "center", marginRight: 14 }}
           >
             {sharing ? (
               <ActivityIndicator size="small" color={colors.textPrimary} />
             ) : (
-              <Ionicons
-                name="share-social-outline"
-                size={22}
-                color={colors.textPrimary}
-              />
+              <Ionicons name="share-social-outline" size={22} color={colors.textPrimary} />
+            )}
+          </TouchableOpacity>
+
+          {/* Download */}
+          <TouchableOpacity
+            onPress={() => downloadDocument(doc, setDownloading)}
+            disabled={sharing || downloading}
+            style={{ alignItems: "center", justifyContent: "center" }}
+          >
+            {downloading ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Ionicons name="download-outline" size={22} color={colors.primary} />
             )}
           </TouchableOpacity>
         </View>
@@ -277,33 +294,56 @@ const DocumentDetail = () => {
         {/* ── Document Preview ── */}
         <View style={styles.previewContainer}>
           {doc.fileType === "image" ? (
-            <Image
-              source={{ uri: doc.fileUrl }}
-              style={styles.previewImage}
-              resizeMode="contain"
-            />
+            // Tap image → opens full-screen viewer
+            <TouchableOpacity
+              activeOpacity={0.92}
+              onPress={() => setImageFullscreen(true)}
+            >
+              <Image
+                source={{ uri: doc.fileUrl }}
+                style={styles.previewImage}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
           ) : (
             <View style={styles.pdfPreviewBox}>
               <View style={styles.pdfIconCircle}>
-                <Ionicons
-                  name="document-text"
-                  size={44}
-                  color={colors.primary}
-                />
+                <Ionicons name="document-text" size={44} color={colors.primary} />
               </View>
               <Text style={styles.pdfLabel}>PDF Document</Text>
-              <TouchableOpacity
-                style={styles.viewPdfBtn}
-                onPress={() => Linking.openURL(doc.fileUrl)}
-                activeOpacity={0.75}
-              >
-                <Ionicons
-                  name="open-outline"
-                  size={14}
-                  color={colors.primary}
-                />
-                <Text style={styles.viewPdfBtnText}>Open PDF</Text>
-              </TouchableOpacity>
+
+              {/* Action buttons row */}
+              <View style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
+                {/* Open PDF */}
+                <TouchableOpacity
+                  style={styles.viewPdfBtn}
+                  onPress={() => Linking.openURL(doc.fileUrl)}
+                  activeOpacity={0.75}
+                >
+                  <Ionicons name="open-outline" size={14} color={colors.primary} />
+                  <Text style={styles.viewPdfBtnText}>Open PDF</Text>
+                </TouchableOpacity>
+
+                {/* Download PDF */}
+                <TouchableOpacity
+                  style={[
+                    styles.viewPdfBtn,
+                    { backgroundColor: `${colors.success}18`, borderColor: colors.success },
+                  ]}
+                  onPress={() => downloadDocument(doc, setDownloading)}
+                  disabled={downloading}
+                  activeOpacity={0.75}
+                >
+                  {downloading ? (
+                    <ActivityIndicator size="small" color={colors.success} />
+                  ) : (
+                    <>
+                      <Ionicons name="download-outline" size={14} color={colors.success} />
+                      <Text style={[styles.viewPdfBtnText, { color: colors.success }]}>Download</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </View>
@@ -571,8 +611,146 @@ const DocumentDetail = () => {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      {/* ── Full-Screen Image Viewer Modal ── */}
+      <Modal
+        visible={imageFullscreen}
+        transparent={false}
+        animationType="fade"
+        onRequestClose={() => setImageFullscreen(false)}
+        statusBarTranslucent
+      >
+        <View style={fsStyles.container}>
+          <StatusBar barStyle="light-content" backgroundColor="#000" translucent />
+
+          {/* Close button */}
+          <TouchableOpacity
+            style={fsStyles.closeBtn}
+            onPress={() => setImageFullscreen(false)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="close" size={26} color="#fff" />
+          </TouchableOpacity>
+
+          {/* Title */}
+          <Text style={fsStyles.title} numberOfLines={1}>
+            {doc?.documentName}
+          </Text>
+
+          {/* Full image */}
+          <Image
+            source={{ uri: doc?.fileUrl }}
+            style={fsStyles.image}
+            resizeMode="contain"
+          />
+
+          {/* Bottom action bar */}
+          <View style={fsStyles.actionBar}>
+            {/* Share */}
+            <TouchableOpacity
+              style={fsStyles.actionBtn}
+              onPress={() => shareDocument(doc, setFsSharing)}
+              disabled={fsSharing || fsDownloading}
+              activeOpacity={0.8}
+            >
+              {fsSharing ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Ionicons name="share-social-outline" size={22} color="#fff" />
+              )}
+              <Text style={fsStyles.actionBtnText}>Share</Text>
+            </TouchableOpacity>
+
+            {/* Download */}
+            <TouchableOpacity
+              style={[fsStyles.actionBtn, fsStyles.actionBtnDownload]}
+              onPress={() => downloadDocument(doc, setFsDownloading)}
+              disabled={fsSharing || fsDownloading}
+              activeOpacity={0.8}
+            >
+              {fsDownloading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Ionicons name="download-outline" size={22} color="#fff" />
+              )}
+              <Text style={fsStyles.actionBtnText}>Download</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
 
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
+
+const fsStyles = {
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeBtn: {
+    position: "absolute",
+    top: 48,
+    left: 16,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: {
+    position: "absolute",
+    top: 54,
+    left: 64,
+    right: 16,
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
+    opacity: 0.85,
+  },
+  image: {
+    width: SCREEN_W,
+    height: SCREEN_H * 0.78,
+  },
+  actionBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    backgroundColor: "rgba(0,0,0,0.7)",
+    paddingBottom: 32,
+    paddingTop: 16,
+    paddingHorizontal: 24,
+    gap: 14,
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 13,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.22)",
+  },
+  actionBtnDownload: {
+    backgroundColor: "rgba(46,107,255,0.45)",
+    borderColor: "rgba(80,140,255,0.5)",
+  },
+  actionBtnText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+};
+
 export default DocumentDetail;
+
