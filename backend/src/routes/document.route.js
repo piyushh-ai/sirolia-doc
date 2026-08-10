@@ -12,7 +12,8 @@ import {
 
 const router = express.Router();
 
-router.post("/create", authMiddleware, upload.single("file"), createDocument);
+// Multiple files (images) — max 5. PDF bhi ek file ke roop mein aata hai
+router.post("/create", authMiddleware, upload.array("files", 5), createDocument);
 
 router.get("/all", authMiddleware, getAllDocuments);
 
@@ -20,8 +21,10 @@ router.get("/my-documents", authMiddleware, getMyDocuments);
 
 router.delete("/delete/:id", authMiddleware, deleteDocument);
 
-router.put("/edit/:id", authMiddleware, upload.single("file"), editDocument);
+// Edit mein bhi multiple files support
+router.put("/edit/:id", authMiddleware, upload.array("files", 5), editDocument);
 
 router.get("/:id", authMiddleware, getDocumentDetail);
 
 export default router;
+

@@ -9,8 +9,21 @@ const documentSchema = new mongoose.Schema(
       required: true,
       enum: ["Piyush", "Dishant", "Sapna", "Santosh"],
     },
-    fileUrl: { type: String, required: true },
-    cloudinaryPublicId: { type: String, required: true },
+
+    // ── NEW: Multiple images support (image type ke liye) ──
+    // Har image ka apna Cloudinary URL aur publicId
+    images: [
+      {
+        url: { type: String, required: true },
+        publicId: { type: String, required: true },
+      },
+    ],
+
+    // ── LEGACY (backward compat): pehle wale documents ke liye ──
+    // Naye documents mein bhi pehli image yahan copy hogi
+    fileUrl: { type: String },
+    cloudinaryPublicId: { type: String },
+
     fileType: { type: String, enum: ["image", "pdf"], required: true },
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -25,3 +38,4 @@ const documentSchema = new mongoose.Schema(
 documentSchema.index({ normalizedName: 1, memberName: 1 }, { unique: true });
 
 export default mongoose.model("Document", documentSchema);
+

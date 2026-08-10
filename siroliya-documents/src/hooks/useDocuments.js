@@ -43,7 +43,8 @@ export const DocumentProvider = ({ children }) => {
     }
   };
 
-  const createDocument = async ({ documentName, memberName, file }) => {
+  // files — array of file objects (expo-document-picker assets)
+  const createDocument = async ({ documentName, memberName, files }) => {
     try {
       setLoading(true);
       setError(null);
@@ -59,23 +60,24 @@ export const DocumentProvider = ({ children }) => {
       const formData = new FormData();
       formData.append("documentName", documentName);
       formData.append("memberName", memberName);
-      formData.append("file", {
-        uri: file.uri,
-        name: file.name || "document",
-        type: file.mimeType || "application/octet-stream",
+
+      // Saari files append karo — key "files" (backend: upload.array("files", 5))
+      const fileArray = Array.isArray(files) ? files : [files];
+      fileArray.forEach((f) => {
+        formData.append("files", {
+          uri: f.uri,
+          name: f.name || "document",
+          type: f.mimeType || "application/octet-stream",
+        });
       });
 
-      const response = await axios.post(
-        url,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-          timeout: 60000, // increased timeout for large files
+      const response = await axios.post(url, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        timeout: 60000,
+      });
       return response;
     } catch (error) {
       console.error(
@@ -185,7 +187,8 @@ export const DocumentProvider = ({ children }) => {
     }
   };
 
-  const editDocument = async (documentId, { documentName, memberName, file }) => {
+  // files — new files to add (array), removeImageIndexes — indexes to remove (array of numbers)
+  const editDocument = async (documentId, { documentName, memberName, files, removeImageIndexes }) => {
     try {
       setLoading(true);
       setError(null);
@@ -198,12 +201,21 @@ export const DocumentProvider = ({ children }) => {
       const formData = new FormData();
       if (documentName) formData.append("documentName", documentName);
       if (memberName) formData.append("memberName", memberName);
-      if (file) {
-        formData.append("file", {
-          uri: file.uri,
-          name: file.name || "document",
-          type: file.mimeType || "application/octet-stream",
+
+      // Naye files append karo
+      if (files && files.length > 0) {
+        files.forEach((f) => {
+          formData.append("files", {
+            uri: f.uri,
+            name: f.name || "document",
+            type: f.mimeType || "application/octet-stream",
+          });
         });
+      }
+
+      // Remove indexes append karo (comma-separated string)
+      if (removeImageIndexes && removeImageIndexes.length > 0) {
+        formData.append("removeImageIndexes", removeImageIndexes.join(","));
       }
 
       const response = await axios.put(url, formData, {
@@ -211,7 +223,7 @@ export const DocumentProvider = ({ children }) => {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
-        timeout: 60000, // increased timeout for large files
+        timeout: 60000,
       });
       return response;
     } catch (error) {
