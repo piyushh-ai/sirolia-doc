@@ -19,7 +19,7 @@ app.get("/health", (req, res) => {
 
 // ── App version / update check (public — no auth required) ───────────────────
 const APP_VERSION_INFO = {
-  latestVersion: "1.0.0",
+  latestVersion: "1.0.1",
   apkUrl: "https://drive.google.com/uc?export=download&id=YOUR_FILE_ID",
   forceUpdate: false,
   releaseNotes: "Bug fixes and share feature added",

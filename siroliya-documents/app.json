@@ -2,7 +2,7 @@
   "expo": {
     "name": "SiroVault",
     "slug": "siroliya-documents",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/siroVault-icon.png",
     "scheme": "siroliyadocuments",
